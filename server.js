@@ -14,7 +14,7 @@ const app = express();
 // ── Middleware ──────────────────────────────────────────────────────────────
 
 // Allow requests from the React frontend
-app.use(cors({ origin: 'https://fylfly-taupe.vercel.app/' }));
+app.use(cors({ origin: 'https://fylfly-taupe.vercel.app' }));
 
 // Parse incoming JSON request bodies
 app.use(express.json());
