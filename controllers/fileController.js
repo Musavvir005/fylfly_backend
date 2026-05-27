@@ -89,35 +89,34 @@ const uploadFile = async (req, res) => {
       expiryTime,
     });
 
-    // 4️⃣ Send access code to recipient's email
+    // 4️⃣ Send access code to recipient's email in the background (non-blocking)
     const senderMessage = req.body.message ? req.body.message.trim() : "";
 
-    try {
-      await transporter.sendMail({
-        from: `"FYLFLY" <${process.env.EMAIL_USER}>`,
-        to: req.body.email,
-        subject: "Your File Access Code — FYLFLY",
-        text: `Your file access code is: FYL-${code}\n\n${senderMessage ? `Your friend's message:\n"${senderMessage}"\n\n` : ""}Enter this code on the Retrieve page to download your file.\nThe code is valid for 3 hours (until ${expiryTime.toLocaleTimeString()}).`,
-        html: `
-          <p>Greetings..,</p>
-          <p>A file has been shared by your friend with you, via <strong>FYLFLY</strong>.</p>
-          ${senderMessage ? `
-          <div style="margin: 16px 0; padding: 12px 16px; border-left: 4px solid #6c63ff; background: #f5f4ff; border-radius: 4px;">
-            <p style="margin: 0; font-style: italic; color: #444;">“${senderMessage}”</p>
-          </div>` : ""}
-          <p>Your access code is:</p>
-          <h2 style="letter-spacing: 8px; font-size: 32px; color: #4a4af4;">FYL-${code}</h2>
-          <p>Enter this code on the <strong>Retrieve</strong> page to download your file.</p>
-          <p><em>Valid until <strong>${expiryTime.toLocaleTimeString()}</strong> (3 hours).</em></p>
-        `,
-      });
+    transporter.sendMail({
+      from: `"FYLFLY" <${process.env.EMAIL_USER}>`,
+      to: req.body.email,
+      subject: "Your File Access Code — FYLFLY",
+      text: `Your file access code is: FYL-${code}\n\n${senderMessage ? `Your friend's message:\n"${senderMessage}"\n\n` : ""}Enter this code on the Retrieve page to download your file.\nThe code is valid for 3 hours (until ${expiryTime.toLocaleTimeString()}).`,
+      html: `
+        <p>Greetings..,</p>
+        <p>A file has been shared by your friend with you, via <strong>FYLFLY</strong>.</p>
+        ${senderMessage ? `
+        <div style="margin: 16px 0; padding: 12px 16px; border-left: 4px solid #6c63ff; background: #f5f4ff; border-radius: 4px;">
+          <p style="margin: 0; font-style: italic; color: #444;">“${senderMessage}”</p>
+        </div>` : ""}
+        <p>Your access code is:</p>
+        <h2 style="letter-spacing: 8px; font-size: 32px; color: #4a4af4;">FYL-${code}</h2>
+        <p>Enter this code on the <strong>Retrieve</strong> page to download your file.</p>
+        <p><em>Valid until <strong>${expiryTime.toLocaleTimeString()}</strong> (3 hours).</em></p>
+      `,
+    }).then(() => {
       console.log(`✉  Access code email sent successfully to ${req.body.email}`);
-    } catch (mailErr) {
+    }).catch((mailErr) => {
       console.error("  Mailer failed to send access code:", mailErr.message);
       console.log(`💡  Generated code for fallback retrieval: FYL-${code}`);
-    }
+    });
 
-    // 5️⃣ Return code + expiry to frontend
+    // 5️⃣ Return code + expiry to frontend immediately
     res.status(201).json({
       success: true,
       message: "File uploaded & access code sent",
