@@ -13,8 +13,17 @@ const app = express();
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 
-// Allow requests from the React frontend
-app.use(cors({ origin: 'http://localhost:3000' }));
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl) or matching localhost
+    if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
+}));
 
 // Parse incoming JSON request bodies
 app.use(express.json());
