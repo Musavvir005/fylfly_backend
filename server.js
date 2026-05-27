@@ -13,10 +13,19 @@ const app = express();
 
 // ── Middleware ──────────────────────────────────────────────────────────────
 
+const allowedOrigins = [
+  process.env.FRONTEND_URL
+].filter(Boolean);
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl) or matching localhost
-    if (!origin || /^http:\/\/localhost(:\d+)?$/.test(origin)) {
+    // Allow requests with no origin, localhost, configured FRONTEND_URL, or any Vercel domain
+    if (
+      !origin ||
+      /^http:\/\/localhost(:\d+)?$/.test(origin) ||
+      allowedOrigins.includes(origin) ||
+      /\.vercel\.app$/.test(origin)
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
